@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import TaskList from '@/components/TaskList';
 import { ListTodo, Loader2 } from 'lucide-react';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AllTasks() {
     const [tasks, setTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -11,7 +13,7 @@ export default function AllTasks() {
 
     const fetchTasks = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/v1/tasks');
+            const response = await fetch(`${API_BASE_URL}/api/v1/tasks`);
             if (response.ok) {
                 setTasks(await response.json());
             }
@@ -29,11 +31,26 @@ export default function AllTasks() {
     const handleTaskComplete = async (id: string) => {
         setTasks(tasks.map(t => t.id === id ? { ...t, status: 'completed' } : t));
         try {
-            await fetch(`http://localhost:8000/api/v1/tasks/${id}/complete`, { method: 'PATCH' });
+            await fetch(`${API_BASE_URL}/api/v1/tasks/${id}/complete`, { method: 'PATCH' });
         } catch (error) {
             console.error('Failed to complete:', error);
             fetchTasks();
         }
+    };
+
+    const handleDeleteTask = async (id: string) => {
+        if (!confirm("Are you sure?")) return;
+        try {
+            await fetch(`${API_BASE_URL}/api/v1/tasks/${id}`, { method: 'DELETE' });
+            setTasks(tasks.filter(t => t.id !== id));
+        } catch (e) {
+            console.error(e);
+            fetchTasks();
+        }
+    };
+
+    const handleEditTask = (task: any) => {
+        window.location.href = '/'; // Simple redirection to home where edit modal exists
     };
 
     const filteredTasks = tasks.filter(t => {
@@ -72,7 +89,12 @@ export default function AllTasks() {
                     <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
                 </div>
             ) : (
-                <TaskList tasks={filteredTasks} onComplete={handleTaskComplete} />
+                <TaskList 
+                    tasks={filteredTasks} 
+                    onComplete={handleTaskComplete} 
+                    onDelete={handleDeleteTask}
+                    onEdit={handleEditTask}
+                />
             )}
         </div>
     );
