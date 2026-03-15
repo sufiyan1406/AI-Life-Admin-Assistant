@@ -11,3 +11,5 @@ emails
 pytest
 requests
 pypdf
+gunicorn
+uvloop

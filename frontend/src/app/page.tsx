@@ -7,6 +7,8 @@ import ConfirmationModal from '@/components/ConfirmationModal';
 import { Activity, CalendarDays, CheckCircle2, Filter, Info, ShieldCheck } from 'lucide-react';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function Home() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,8 +23,8 @@ export default function Home() {
     setIsLoading(true);
     try {
       const url = category 
-        ? `http://localhost:8000/api/v1/tasks?category=${category}`
-        : 'http://localhost:8000/api/v1/tasks';
+        ? `${API_BASE_URL}/api/v1/tasks?category=${category}`
+        : `${API_BASE_URL}/api/v1/tasks`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -53,7 +55,7 @@ export default function Home() {
     try {
       if (isEditingExisting) {
         // Update existing
-        const response = await fetch(`http://localhost:8000/api/v1/tasks/${task.id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/tasks/${task.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(task)
@@ -63,7 +65,7 @@ export default function Home() {
         // This was a low-confidence upload that we are now confirming
         // In this simple implementation, the backend already saved it as 'pending'.
         // We just need to update it with the user's edits and set confidence to 1.0
-        const response = await fetch(`http://localhost:8000/api/v1/tasks/${task.id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/tasks/${task.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...task, confidence: 1.0 })
@@ -80,7 +82,7 @@ export default function Home() {
   const handleDeleteTask = async (id: string) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
     try {
-      await fetch(`http://localhost:8000/api/v1/tasks/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/v1/tasks/${id}`, { method: 'DELETE' });
       setTasks(tasks.filter(t => t.id !== id));
     } catch (e) {
       console.error(e);
@@ -97,7 +99,7 @@ export default function Home() {
   const handleTaskComplete = async (id: string) => {
     setTasks(tasks.map(t => t.id === id ? { ...t, status: 'completed' } : t));
     try {
-      await fetch(`http://localhost:8000/api/v1/tasks/${id}/complete`, { method: 'PATCH' });
+      await fetch(`${API_BASE_URL}/api/v1/tasks/${id}/complete`, { method: 'PATCH' });
     } catch (error) {
       console.error('Failed to mark task as complete:', error);
       fetchTasks();

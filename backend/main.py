@@ -15,9 +15,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AI Life Admin Assistant API", version="1.0.0", lifespan=lifespan)
 
 # Setup CORS for the Next.js frontend
+# In production, you might want to specify exactly which origins are allowed.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"], # Allowing all initially for ease of deployment
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
