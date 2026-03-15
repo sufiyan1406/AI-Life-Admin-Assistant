@@ -3,25 +3,47 @@
 import React, { useEffect, useState } from 'react';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function CalendarView() {
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [tasks, setTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const response = await fetch('http://localhost:8000/api/v1/tasks');
-                if (response.ok) setTasks(await response.json());
-            } catch (error) {
-                console.error('Failed to fetch tasks:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchTasks();
-    }, []);
+        if (!authLoading && !user) {
+            router.push('/login');
+        }
+    }, [user, authLoading, router]);
+
+    const fetchTasks = async () => {
+        if (!user) return;
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const response = await fetch(`${API_BASE_URL}/api/v1/tasks`, {
+                headers: {
+                    'Authorization': `Bearer ${session?.access_token}`
+                }
+            });
+            if (response.ok) setTasks(await response.json());
+        } catch (error) {
+            console.error('Failed to fetch tasks:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchTasks();
+        }
+    }, [user]);
 
     const nextMonth = () => setCurrentDate(addDays(currentDate, 31));
     const prevMonth = () => setCurrentDate(addDays(currentDate, -31));
@@ -70,45 +92,53 @@ export default function CalendarView() {
                     <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
                 </div>
             ) : (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-                    <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-800/50">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                            <div key={d} className="py-3 text-center text-sm font-bold text-slate-500 uppercase tracking-wider">
-                                {d}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative">
+                    <div className="overflow-x-auto no-scrollbar">
+                        <div className="min-w-[800px]">
+                            <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-800/30">
+                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                                    <div key={d} className="py-4 text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                        {d}
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
 
-                    <div className="grid grid-cols-7 auto-rows-fr">
-                        {days.map((d, i) => {
-                            const dayTasks = getTasksForDay(d);
-                            const isToday = isSameDay(d, new Date());
-                            const isCurrentMonth = isSameMonth(d, monthStart);
+                            <div className="grid grid-cols-7 auto-rows-fr">
+                                {days.map((d, i) => {
+                                    const dayTasks = getTasksForDay(d);
+                                    const isToday = isSameDay(d, new Date());
+                                    const isCurrentMonth = isSameMonth(d, monthStart);
 
-                            return (
-                                <div
-                                    key={d.toISOString()}
-                                    className={`min-h-[120px] p-2 border-r border-b border-slate-800/50 transition-colors
-                    ${!isCurrentMonth ? 'bg-slate-950/50 text-slate-600' : 'text-slate-300 hover:bg-slate-800/30'}
-                    ${isToday ? 'bg-indigo-500/5 hover:bg-indigo-500/10' : ''}
-                  `}
-                                >
-                                    <div className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full mb-2
-                    ${isToday ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : ''}
-                  `}>
-                                        {format(d, 'd')}
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        {dayTasks.map((t, idx) => (
-                                            <div key={idx} className="text-xs truncate px-2 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-medium">
-                                                {format(parseISO(t.deadline!), 'h:mm a')} • {t.title}
+                                    return (
+                                        <div
+                                            key={d.toISOString()}
+                                            className={`min-h-[140px] p-3 border-r border-b border-slate-800/40 transition-colors relative group
+                            ${!isCurrentMonth ? 'bg-slate-950/40 text-slate-700' : 'text-slate-300 hover:bg-slate-800/30'}
+                            ${isToday ? 'bg-indigo-500/5' : ''}
+                          `}
+                                        >
+                                            <div className={`text-xs font-bold w-7 h-7 flex items-center justify-center rounded-lg mb-3
+                            ${isToday ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-800/50 text-slate-400 group-hover:text-slate-200'}
+                          `}>
+                                                {format(d, 'd')}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
+
+                                            <div className="space-y-1.5">
+                                                {dayTasks.map((t, idx) => (
+                                                    <div key={idx} className="text-[10px] px-2 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-bold truncate hover:bg-indigo-500/20 transition-colors pointer-events-none">
+                                                        {format(parseISO(t.deadline!), 'h:mm a')} • {t.title}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                    {/* Visual indicator for horizontal scroll on mobile */}
+                    <div className="md:hidden flex items-center justify-center gap-2 py-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-slate-950/50 border-t border-slate-800">
+                        <span>Scroll horizontally to view calendar</span>
                     </div>
                 </div>
             )}

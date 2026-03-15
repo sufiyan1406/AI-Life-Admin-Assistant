@@ -20,8 +20,8 @@ class SupabaseRESTClient:
         res.raise_for_status()
         return res.json()
         
-    def get_all_tasks(self, category: str = None):
-        url = f"{self.url}/rest/v1/tasks?select=*&order=created_at.desc"
+    def get_all_tasks(self, user_id: str, category: str = None):
+        url = f"{self.url}/rest/v1/tasks?user_id=eq.{user_id}&select=*&order=created_at.desc"
         if category:
             url += f"&category=eq.{category}"
         res = requests.get(url, headers=self.headers)
@@ -30,28 +30,29 @@ class SupabaseRESTClient:
         res.raise_for_status()
         return res.json()
         
-    def complete_task(self, task_id):
-        res = requests.patch(f"{self.url}/rest/v1/tasks?id=eq.{task_id}", headers=self.headers, json={"status": "completed"})
+    def complete_task(self, task_id: str, user_id: str):
+        res = requests.patch(f"{self.url}/rest/v1/tasks?id=eq.{task_id}&user_id=eq.{user_id}", headers=self.headers, json={"status": "completed"})
         if not res.ok:
             print(f"Supabase Complete Task Error: {res.text}")
         res.raise_for_status()
         return res.json()
-
-    def update_task(self, task_id, update_data):
-        res = requests.patch(f"{self.url}/rest/v1/tasks?id=eq.{task_id}", headers=self.headers, json=update_data)
+ 
+    def update_task(self, task_id: str, user_id: str, update_data: dict):
+        res = requests.patch(f"{self.url}/rest/v1/tasks?id=eq.{task_id}&user_id=eq.{user_id}", headers=self.headers, json=update_data)
         if not res.ok:
             print(f"Supabase Update Task Error: {res.text}")
         res.raise_for_status()
         return res.json()
-
-    def delete_task(self, task_id):
-        res = requests.delete(f"{self.url}/rest/v1/tasks?id=eq.{task_id}", headers=self.headers)
+ 
+    def delete_task(self, task_id: str, user_id: str):
+        res = requests.delete(f"{self.url}/rest/v1/tasks?id=eq.{task_id}&user_id=eq.{user_id}", headers=self.headers)
         if not res.ok:
             print(f"Supabase Delete Task Error: {res.text}")
         res.raise_for_status()
         return res.json()
         
     def get_pending_tasks_with_deadlines(self):
+        # This is for the background worker, which needs all users' tasks
         url = f"{self.url}/rest/v1/tasks?status=eq.pending&deadline=not.is.null&select=*"
         res = requests.get(url, headers=self.headers)
         if not res.ok:
@@ -70,5 +71,12 @@ class SupabaseRESTClient:
             print(f"Supabase Reminder Error: {res.text}")
         res.raise_for_status()
         return res.json()
+
+    def get_user_profile(self, user_id: str):
+        res = requests.get(f"{self.url}/rest/v1/profiles?id=eq.{user_id}&select=*", headers=self.headers)
+        if not res.ok:
+            return None
+        data = res.json()
+        return data[0] if data else None
 
 db_client = SupabaseRESTClient()

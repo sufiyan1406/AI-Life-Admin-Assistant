@@ -6,10 +6,16 @@ import TaskList from '@/components/TaskList';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { Activity, CalendarDays, CheckCircle2, Filter, Info, ShieldCheck } from 'lucide-react';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
+import { supabase } from '@/lib/supabase';
+
+import { useAuth } from '@/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function Home() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [tasks, setTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -19,13 +25,29 @@ export default function Home() {
   const [pendingConfirmationTask, setPendingConfirmationTask] = useState<any>(null);
   const [isEditingExisting, setIsEditingExisting] = useState(false);
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
+  const getHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return {
+      'Authorization': `Bearer ${session?.access_token}`,
+      'Content-Type': 'application/json'
+    };
+  };
+
   const fetchTasks = async (category?: string) => {
+    if (!user) return;
     setIsLoading(true);
     try {
+      const headers = await getHeaders();
       const url = category 
         ? `${API_BASE_URL}/api/v1/tasks?category=${category}`
         : `${API_BASE_URL}/api/v1/tasks`;
-      const response = await fetch(url);
+      const response = await fetch(url, { headers });
       if (response.ok) {
         const data = await response.json();
         setTasks(data);
@@ -38,8 +60,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (user) {
+      fetchTasks();
+    }
+  }, [user]);
 
   const handleUploadComplete = (task: any) => {
     if (task.confidence < 0.7) {
@@ -53,21 +77,20 @@ export default function Home() {
 
   const handleConfirmTask = async (task: any) => {
     try {
+      const headers = await getHeaders();
       if (isEditingExisting) {
         // Update existing
         const response = await fetch(`${API_BASE_URL}/api/v1/tasks/${task.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(task)
         });
         if (!response.ok) throw new Error("Failed to update task");
       } else {
         // This was a low-confidence upload that we are now confirming
-        // In this simple implementation, the backend already saved it as 'pending'.
-        // We just need to update it with the user's edits and set confidence to 1.0
         const response = await fetch(`${API_BASE_URL}/api/v1/tasks/${task.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ ...task, confidence: 1.0 })
         });
         if (!response.ok) throw new Error("Failed to confirm task");
@@ -82,7 +105,11 @@ export default function Home() {
   const handleDeleteTask = async (id: string) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
     try {
-      await fetch(`${API_BASE_URL}/api/v1/tasks/${id}`, { method: 'DELETE' });
+      const headers = await getHeaders();
+      await fetch(`${API_BASE_URL}/api/v1/tasks/${id}`, { 
+        method: 'DELETE',
+        headers 
+      });
       setTasks(tasks.filter(t => t.id !== id));
     } catch (e) {
       console.error(e);
@@ -99,7 +126,11 @@ export default function Home() {
   const handleTaskComplete = async (id: string) => {
     setTasks(tasks.map(t => t.id === id ? { ...t, status: 'completed' } : t));
     try {
-      await fetch(`${API_BASE_URL}/api/v1/tasks/${id}/complete`, { method: 'PATCH' });
+      const headers = await getHeaders();
+      await fetch(`${API_BASE_URL}/api/v1/tasks/${id}/complete`, { 
+        method: 'PATCH',
+        headers
+      });
     } catch (error) {
       console.error('Failed to mark task as complete:', error);
       fetchTasks();

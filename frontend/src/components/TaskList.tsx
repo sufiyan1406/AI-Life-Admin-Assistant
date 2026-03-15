@@ -85,13 +85,13 @@ const TaskCard = ({ task, onComplete, onDelete, onEdit }: {
             </button>
 
             <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-3">
-                    <h4 className={`text-lg font-medium mb-1 truncate ${isCompleted ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
+                    <h4 className={`text-lg font-bold truncate ${isCompleted ? 'line-through text-slate-500' : 'text-slate-200'}`}>
                         {task.title}
                     </h4>
                     
                     {!isCompleted && (
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity self-end sm:self-auto">
                             <button 
                                 onClick={() => onEdit(task)}
                                 className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-all"
@@ -111,26 +111,26 @@ const TaskCard = ({ task, onComplete, onDelete, onEdit }: {
                 </div>
 
                 {task.description && (
-                    <p className="text-slate-400 text-sm mb-3 line-clamp-2">
+                    <p className="text-slate-400 text-sm mb-4 line-clamp-2">
                         {task.description}
                     </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-3 mt-2">
+                <div className="flex flex-wrap items-center gap-2 mt-auto">
                     {task.deadline && (
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 bg-slate-800/50 px-2.5 py-1 rounded-md border border-slate-700/50">
-                            <Clock className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-950/50 px-2.5 py-1.5 rounded-xl border border-slate-800/50">
+                            <Clock className="w-3.5 h-3.5 text-indigo-400" />
                             <span>{format(parseISO(task.deadline), 'MMM d, h:mm a')}</span>
                         </div>
                     )}
 
-                    <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md border capitalize ${pColor}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                        {task.priority} Priority
+                    <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-xl border ${pColor}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+                        {task.priority}
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 bg-slate-800/50 px-2.5 py-1 rounded-md border border-slate-700/50 capitalize">
-                        <Tag className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-950/50 px-2.5 py-1.5 rounded-xl border border-slate-800/50">
+                        <Tag className="w-3.5 h-3.5 text-indigo-400" />
                         {task.category || 'General'}
                     </div>
                 </div>
