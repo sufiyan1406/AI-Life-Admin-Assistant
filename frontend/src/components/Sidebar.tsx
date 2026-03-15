@@ -3,21 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, CheckSquare, Settings, Menu, X, LogOut, User } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
+import { Home, Calendar, CheckSquare, Settings, Menu, X } from 'lucide-react';
 
 const Sidebar = () => {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
-    const { user } = useAuth();
 
     const toggleSidebar = () => setIsOpen(!isOpen);
-
-    const handleSignOut = async () => {
-        await supabase.auth.signOut();
-        window.location.href = '/login';
-    };
 
     return (
         <>
@@ -88,28 +80,6 @@ const Sidebar = () => {
                         active={pathname === '/settings'} 
                         onClick={() => setIsOpen(false)}
                     />
-                    
-                    <button
-                        onClick={handleSignOut}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-400/10 transition-all duration-300 group"
-                    >
-                        <LogOut size={20} className="group-hover:scale-110 transition-transform" />
-                        <span className="font-medium text-sm">Sign Out</span>
-                    </button>
-
-                    {user && (
-                        <div className="mt-4 px-4 py-3 bg-slate-950/50 rounded-2xl border border-slate-800/50 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                                <User size={16} className="text-indigo-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-slate-200 truncate">
-                                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                                </p>
-                                <p className="text-[10px] text-slate-500 truncate">Free Plan</p>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </aside>
         </>

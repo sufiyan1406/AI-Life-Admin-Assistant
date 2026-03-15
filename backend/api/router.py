@@ -6,15 +6,11 @@ from services.db import db_client
 from services.ai_pipeline import process_file_and_extract_task
 import uuid
 
-from services.auth import get_current_user_id
-import uuid
-
 router = APIRouter(prefix="/api/v1", tags=["tasks"])
 
 @router.post("/tasks/upload", response_model=TaskResponse)
 async def upload_file_and_extract(
-    file: UploadFile = File(...), 
-    user_id: str = Depends(get_current_user_id)
+    file: UploadFile = File(...)
 ):
     """Upload a file (image, pdf, audio), extract text via AI, and save the task."""
     try:
@@ -29,7 +25,6 @@ async def upload_file_and_extract(
         
         # 2. Map to Database Model
         task_data = {
-            "user_id": user_id,
             "title": extraction.task_title,
             "category": extraction.category,
             "deadline": extraction.deadline.isoformat() if extraction.deadline else None,
@@ -53,12 +48,11 @@ async def upload_file_and_extract(
 
 @router.get("/tasks", response_model=List[TaskResponse])
 def get_tasks(
-    category: Optional[str] = None, 
-    user_id: str = Depends(get_current_user_id)
+    category: Optional[str] = None
 ):
-    """Fetch all tasks for the current user."""
+    """Fetch all tasks."""
     try:
-        data = db_client.get_all_tasks(user_id=user_id, category=category)
+        data = db_client.get_all_tasks(category=category)
         return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -66,40 +60,37 @@ def get_tasks(
 @router.put("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(
     task_id: str, 
-    task: TaskCreate, 
-    user_id: str = Depends(get_current_user_id)
+    task: TaskCreate
 ):
-    """Update an existing task owned by current user."""
+    """Update an existing task."""
     try:
-        data = db_client.update_task(task_id, user_id, task.dict(exclude_unset=True))
+        data = db_client.update_task(task_id, task.dict(exclude_unset=True))
         if not data or len(data) == 0:
-            raise HTTPException(status_code=404, detail="Task not found or unauthorized")
+            raise HTTPException(status_code=404, detail="Task not found")
         return data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/tasks/{task_id}")
 def delete_task(
-    task_id: str, 
-    user_id: str = Depends(get_current_user_id)
+    task_id: str
 ):
-    """Delete a task owned by current user."""
+    """Delete a task."""
     try:
-        db_client.delete_task(task_id, user_id)
+        db_client.delete_task(task_id)
         return {"status": "success", "message": "Task deleted"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
         
 @router.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
 def complete_task(
-    task_id: str, 
-    user_id: str = Depends(get_current_user_id)
+    task_id: str
 ):
-    """Mark a task as completed for current user."""
+    """Mark a task as completed."""
     try:
-        data = db_client.complete_task(task_id, user_id)
+        data = db_client.complete_task(task_id)
         if not data or len(data) == 0:
-            raise HTTPException(status_code=404, detail="Task not found or unauthorized")
+            raise HTTPException(status_code=404, detail="Task not found")
         return data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

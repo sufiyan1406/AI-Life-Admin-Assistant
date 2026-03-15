@@ -3,34 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function CalendarView() {
-    const { user, loading: authLoading } = useAuth();
-    const router = useRouter();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [tasks, setTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        if (!authLoading && !user) {
-            router.push('/login');
-        }
-    }, [user, authLoading, router]);
-
     const fetchTasks = async () => {
-        if (!user) return;
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const response = await fetch(`${API_BASE_URL}/api/v1/tasks`, {
-                headers: {
-                    'Authorization': `Bearer ${session?.access_token}`
-                }
-            });
+            const response = await fetch(`${API_BASE_URL}/api/v1/tasks`);
             if (response.ok) setTasks(await response.json());
         } catch (error) {
             console.error('Failed to fetch tasks:', error);
@@ -40,10 +23,8 @@ export default function CalendarView() {
     };
 
     useEffect(() => {
-        if (user) {
-            fetchTasks();
-        }
-    }, [user]);
+        fetchTasks();
+    }, []);
 
     const nextMonth = () => setCurrentDate(addDays(currentDate, 31));
     const prevMonth = () => setCurrentDate(addDays(currentDate, -31));

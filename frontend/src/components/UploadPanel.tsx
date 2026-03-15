@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, File, Image as ImageIcon, Music, Loader2, CheckCircle2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 interface UploadPanelProps {
     onUploadComplete: (task: any) => void;
@@ -27,12 +26,8 @@ export default function UploadPanel({ onUploadComplete }: UploadPanelProps) {
 
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
         try {
-            const { data: { session } } = await supabase.auth.getSession();
             const response = await fetch(`${API_BASE_URL}/api/v1/tasks/upload`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session?.access_token}`
-                },
                 body: formData,
             });
 

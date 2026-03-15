@@ -4,38 +4,16 @@ import React, { useEffect, useState } from 'react';
 import TaskList from '@/components/TaskList';
 import { ListTodo, Loader2 } from 'lucide-react';
 
-import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function AllTasks() {
-    const { user, loading: authLoading } = useAuth();
-    const router = useRouter();
     const [tasks, setTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
 
-    useEffect(() => {
-        if (!authLoading && !user) {
-            router.push('/login');
-        }
-    }, [user, authLoading, router]);
-
-    const getHeaders = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        return {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json'
-        };
-    };
-
     const fetchTasks = async () => {
-        if (!user) return;
         try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/v1/tasks`, { headers });
+            const response = await fetch(`${API_BASE_URL}/api/v1/tasks`);
             if (response.ok) {
                 setTasks(await response.json());
             }
@@ -47,18 +25,14 @@ export default function AllTasks() {
     };
 
     useEffect(() => {
-        if (user) {
-            fetchTasks();
-        }
-    }, [user]);
+        fetchTasks();
+    }, []);
 
     const handleTaskComplete = async (id: string) => {
         setTasks(tasks.map(t => t.id === id ? { ...t, status: 'completed' } : t));
         try {
-            const headers = await getHeaders();
             await fetch(`${API_BASE_URL}/api/v1/tasks/${id}/complete`, { 
-                method: 'PATCH',
-                headers
+                method: 'PATCH'
             });
         } catch (error) {
             console.error('Failed to complete:', error);
@@ -69,10 +43,8 @@ export default function AllTasks() {
     const handleDeleteTask = async (id: string) => {
         if (!confirm("Are you sure?")) return;
         try {
-            const headers = await getHeaders();
             await fetch(`${API_BASE_URL}/api/v1/tasks/${id}`, { 
-                method: 'DELETE',
-                headers
+                method: 'DELETE'
             });
             setTasks(tasks.filter(t => t.id !== id));
         } catch (e) {

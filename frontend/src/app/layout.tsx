@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import SidebarWrapper from '../components/SidebarWrapper';
-import { AuthProvider } from '@/providers/AuthProvider';
+import Sidebar from '@/components/Sidebar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,12 +18,10 @@ export default function RootLayout({
     return (
         <html lang="en" className="dark h-full bg-slate-950 font-sans">
             <body className={`${inter.className} h-full flex flex-col md:flex-row overflow-hidden text-slate-200 antialiased selection:bg-indigo-500/30 selection:text-indigo-200`}>
-                <AuthProvider>
-                    <SidebarWrapper />
-                    <main className="flex-1 overflow-y-auto h-full scroll-smooth">
-                        {children}
-                    </main>
-                </AuthProvider>
+                <Sidebar />
+                <main className="flex-1 overflow-y-auto h-full scroll-smooth">
+                    {children}
+                </main>
             </body>
         </html>
     );

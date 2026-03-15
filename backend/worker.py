@@ -16,19 +16,6 @@ def process_reminders():
         tasks = db_client.get_pending_tasks_with_deadlines()
         
         for task in tasks:
-            user_id = task.get('user_id')
-            if not user_id:
-                continue
-            
-            # Fetch user profile for email and preferences
-            profile = db_client.get_user_profile(user_id)
-            if not profile or not profile.get('email_reminders'):
-                continue
-                
-            to_email = profile.get('email')
-            if not to_email:
-                continue
-
             deadline_str = task.get('deadline')
             if not deadline_str:
                 continue
@@ -51,8 +38,9 @@ def process_reminders():
                     if len(reminders) > 0:
                         continue
                         
-                    # Send Email
-                    logger.info(f"Triggering {label} reminder for {to_email} - task: {task['title']}")
+                    # Send Email (using host email as recipient for single user)
+                    to_email = settings.EMAIL_HOST_USER
+                    logger.info(f"Triggering {label} reminder to {to_email} - task: {task['title']}")
                     success = send_reminder_email(
                         to_email=to_email,
                         task_title=f"[{label} Reminder] {task['title']}",
@@ -63,7 +51,6 @@ def process_reminders():
                     # Mark reminder as sent
                     db_client.insert_reminder({
                         'task_id': task['id'],
-                        'user_id': user_id,
                         'send_at': now.isoformat(),
                         'interval_type': label,
                         'status': 'sent' if success else 'failed'
