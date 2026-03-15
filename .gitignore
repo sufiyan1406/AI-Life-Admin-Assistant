@@ -1,0 +1,19 @@
+# Environments (Sensitive info)
+.env*
+.env
+
+# Backend
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# IDE/System
+.DS_Store
+.vscode/
+.idea/
