@@ -86,22 +86,22 @@ const TaskCard = ({ task, onComplete, onDelete, onEdit }: {
 
             <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
-                    <h4 className={`text-lg font-bold truncate ${isCompleted ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                    <h4 className={`text-base md:text-lg font-bold truncate ${isCompleted ? 'line-through text-slate-500' : 'text-slate-200'}`}>
                         {task.title}
                     </h4>
                     
                     {!isCompleted && (
-                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity self-end sm:self-auto">
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <button 
                                 onClick={() => onEdit(task)}
-                                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-all"
+                                className="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition-all"
                                 title="Edit Task"
                             >
                                 <Pencil className="w-4 h-4" />
                             </button>
                             <button 
                                 onClick={() => onDelete(task.id)}
-                                className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-all"
+                                className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 rounded-xl transition-all"
                                 title="Delete Task"
                             >
                                 <X className="w-4 h-4" />

@@ -14,19 +14,20 @@ const Sidebar = () => {
     return (
         <>
             {/* Mobile Toggle Button */}
-            <div className="md:hidden fixed top-4 left-4 z-50">
+            <div className="md:hidden fixed top-6 left-6 z-[60]">
                 <button
                     onClick={toggleSidebar}
-                    className="p-2 bg-slate-900 border border-slate-700 rounded-xl text-slate-200 shadow-xl"
+                    className="p-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/50 rounded-2xl text-slate-200 shadow-2xl transition-all active:scale-95"
+                    aria-label="Toggle Menu"
                 >
-                    {isOpen ? <X size={24} /> : <Menu size={24} />}
+                    {isOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
 
             {/* Backdrop for mobile */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+                    className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 md:hidden transition-opacity duration-300"
                     onClick={() => setIsOpen(false)}
                 />
             )}

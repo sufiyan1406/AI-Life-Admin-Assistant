@@ -19,7 +19,7 @@ export default function RootLayout({
         <html lang="en" className="dark h-full bg-slate-950 font-sans">
             <body className={`${inter.className} h-full flex flex-col md:flex-row overflow-hidden text-slate-200 antialiased selection:bg-indigo-500/30 selection:text-indigo-200`}>
                 <Sidebar />
-                <main className="flex-1 overflow-y-auto h-full scroll-smooth">
+                <main className="flex-1 overflow-y-auto h-full scroll-smooth pb-20 md:pb-0">
                     {children}
                 </main>
             </body>

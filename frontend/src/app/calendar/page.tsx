@@ -46,23 +46,26 @@ export default function CalendarView() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto px-8 py-10 pt-16">
-            <div className="flex items-center justify-between mb-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16 uppercase-none">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shadow-lg shadow-purple-500/5">
                         <CalendarIcon className="text-purple-400 w-6 h-6" />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-200">Calendar Planner</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-200">Calendar Planner</h1>
+                        <p className="text-slate-500 text-xs mt-0.5">Manage your time visually</p>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 rounded-lg p-1 shadow-sm">
-                    <button onClick={prevMonth} className="p-2 hover:bg-slate-800 rounded-md transition text-slate-400 hover:text-white">
+                <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-1 shadow-xl self-stretch sm:self-auto justify-between sm:justify-start">
+                    <button onClick={prevMonth} className="p-3 hover:bg-slate-800 rounded-xl transition text-slate-400 hover:text-white" aria-label="Previous Month">
                         <ChevronLeft size={20} />
                     </button>
-                    <span className="text-lg font-bold min-w-32 text-center text-slate-200">
+                    <span className="text-base font-bold min-w-32 text-center text-slate-200">
                         {format(currentDate, 'MMMM yyyy')}
                     </span>
-                    <button onClick={nextMonth} className="p-2 hover:bg-slate-800 rounded-md transition text-slate-400 hover:text-white">
+                    <button onClick={nextMonth} className="p-3 hover:bg-slate-800 rounded-xl transition text-slate-400 hover:text-white" aria-label="Next Month">
                         <ChevronRight size={20} />
                     </button>
                 </div>

@@ -124,7 +124,7 @@ export default function Home() {
   }, [tasks]);
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-10 pt-16">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16 uppercase-none">
       <ConfirmationModal 
         isOpen={isModalOpen}
         task={pendingConfirmationTask}
@@ -132,19 +132,19 @@ export default function Home() {
         onCancel={() => setIsModalOpen(false)}
       />
 
-      <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <header className="mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-400 mb-2 mt-4 inline-block">
+          <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-400 mb-2 inline-block">
             Dashboard
           </h1>
-          <p className="text-slate-400 text-lg">
+          <p className="text-slate-400 text-base md:text-lg">
             Intelligent Life Administration.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <StatBadge icon={<Activity className="w-5 h-5 text-indigo-400" />} label="Pending" value={tasks.filter(t => t.status !== 'completed').length} />
-          <StatBadge icon={<CheckCircle2 className="w-5 h-5 text-emerald-400" />} label="Done" value={tasks.filter(t => t.status === 'completed').length} />
+        <div className="flex items-center gap-3 self-start sm:self-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <StatBadge icon={<Activity className="w-4 h-4 md:w-5 md:h-5 text-indigo-400" />} label="Pending" value={tasks.filter(t => t.status !== 'completed').length} />
+          <StatBadge icon={<CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />} label="Done" value={tasks.filter(t => t.status === 'completed').length} />
         </div>
       </header>
 
