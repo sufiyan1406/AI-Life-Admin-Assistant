@@ -23,23 +23,31 @@ export default function UploadPanel({ onUploadComplete }: UploadPanelProps) {
         formData.append('file', file);
 
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        
+        // Add a 60s timeout for Render cold starts
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        
         try {
             const response = await fetch(`${API_BASE_URL}/api/v1/tasks/upload`, {
                 method: 'POST',
                 body: formData,
+                signal: controller.signal,
             });
+            
+            clearTimeout(timeoutId);
 
             if (!response.ok) throw new Error('Failed to process file');
 
             const data = await response.json();
-            
+
             if (data.confidence < 0.7) {
                 setMessage('AI needs your confirmation...');
             } else {
                 setUploadStatus('success');
                 setMessage('Task extracted successfully!');
             }
-            
+
             onUploadComplete(data);
 
             if (data.confidence >= 0.7) {
@@ -49,11 +57,16 @@ export default function UploadPanel({ onUploadComplete }: UploadPanelProps) {
                 }, 3000);
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Upload error:', error);
             setUploadStatus('error');
-            setMessage('Extraction failed. Please try again.');
+            if (error?.name === 'AbortError') {
+                setMessage('Request timed out. Backend may be starting up, please try again.');
+            } else {
+                setMessage('Extraction failed. Please try again.');
+            }
         } finally {
+            clearTimeout(timeoutId);
             setIsUploading(false);
         }
     }, [onUploadComplete]);
@@ -67,10 +80,16 @@ export default function UploadPanel({ onUploadComplete }: UploadPanelProps) {
     const handleMobileFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files && files.length > 0) {
-            processFile(files[0]);
+            // Copy the file reference BEFORE any input manipulation
+            const selectedFile = files[0];
+            processFile(selectedFile);
         }
-        // Reset the input so the same file can be selected again
-        e.target.value = '';
+        // Delay reset to avoid invalidating the File reference on mobile browsers
+        setTimeout(() => {
+            if (e.target) {
+                e.target.value = '';
+            }
+        }, 1000);
     }, [processFile]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
