@@ -46,7 +46,7 @@ export default function CalendarView() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16 uppercase-none">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shadow-lg shadow-purple-500/5">

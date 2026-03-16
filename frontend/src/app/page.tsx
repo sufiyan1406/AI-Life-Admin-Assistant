@@ -124,7 +124,7 @@ export default function Home() {
   }, [tasks]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16 uppercase-none">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16">
       <ConfirmationModal 
         isOpen={isModalOpen}
         task={pendingConfirmationTask}
