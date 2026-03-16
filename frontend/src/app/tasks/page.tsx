@@ -63,7 +63,7 @@ export default function AllTasks() {
     });
 
     return (
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-10 pt-20 md:pt-16">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10 pt-6 md:pt-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 border-b border-slate-800 pb-6 gap-6">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">

@@ -23,7 +23,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-6 py-12 pt-16 md:pt-12">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-12 pt-6 md:pt-12">
             <div className="flex items-center gap-4 mb-10 border-b border-slate-800 pb-8">
                 <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg">
                     <Settings className="text-slate-400 w-6 h-6" />
