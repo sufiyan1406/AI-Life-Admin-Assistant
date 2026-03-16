@@ -39,8 +39,13 @@ print(f"DEBUG: groq_client initialized: {groq_client is not None}")
 def extract_text_from_image(image_bytes: bytes) -> str:
     """Extract text from an image using Tesseract OCR."""
     image = Image.open(io.BytesIO(image_bytes))
-    # Note: On Windows, you may need to specify the tesseract executable path if it's not in PATH
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    # Convert HEIC/RGBA/P mode images to RGB for compatibility
+    if image.mode in ('RGBA', 'P', 'LA'):
+        image = image.convert('RGB')
+    # Set tesseract path only on Windows
+    import platform
+    if platform.system() == 'Windows':
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     return image_to_string(image)
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
@@ -182,22 +187,61 @@ def parse_task_from_text(text: str) -> TaskExtraction:
             confidence=0.5
         )
 
+
+def _resolve_content_type(content_type: str, filename: str) -> str:
+    """Resolve the actual content type from the filename extension when the browser sends a generic type."""
+    if content_type and content_type not in ('application/octet-stream', 'binary/octet-stream', ''):
+        return content_type
+    
+    # Fallback: detect from filename extension
+    ext = os.path.splitext(filename or '')[1].lower()
+    ext_map = {
+        # Images
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.webp': 'image/webp',
+        '.heic': 'image/heic',
+        '.heif': 'image/heif',
+        '.gif': 'image/gif',
+        '.bmp': 'image/bmp',
+        # Audio
+        '.mp3': 'audio/mpeg',
+        '.wav': 'audio/wav',
+        '.m4a': 'audio/mp4',
+        '.ogg': 'audio/ogg',
+        '.aac': 'audio/aac',
+        '.webm': 'audio/webm',
+        '.flac': 'audio/flac',
+        # Documents
+        '.pdf': 'application/pdf',
+        '.txt': 'text/plain',
+    }
+    resolved = ext_map.get(ext, content_type or 'application/octet-stream')
+    print(f"DEBUG: Resolved content_type from '{content_type}' to '{resolved}' based on extension '{ext}'")
+    return resolved
+
+
 def process_file_and_extract_task(file_bytes: bytes, filename: str, content_type: str) -> TaskExtraction:
     """Main pipeline to process a file and return a structured task."""
     extracted_text = ""
     
-    print(f"DEBUG: Processing file {filename} with content_type {content_type}")
-    if content_type.startswith("image/"):
+    # Resolve the actual content type (mobile browsers often send application/octet-stream)
+    resolved_type = _resolve_content_type(content_type, filename)
+    
+    print(f"DEBUG: Processing file {filename} with content_type {content_type} -> resolved: {resolved_type}")
+    
+    if resolved_type.startswith("image/"):
         extracted_text = extract_text_from_image(file_bytes)
-    elif content_type.startswith("audio/") or content_type in ["video/mp4", "video/webm"]:
+    elif resolved_type.startswith("audio/") or resolved_type in ["video/mp4", "video/webm"]:
         extracted_text = extract_text_from_audio(file_bytes, filename)
-    elif content_type == "text/plain":
+    elif resolved_type == "text/plain":
         extracted_text = file_bytes.decode("utf-8")
-    elif content_type == "application/pdf":
+    elif resolved_type == "application/pdf":
         extracted_text = extract_text_from_pdf(file_bytes)
     else:
         # Fallback handling
-        extracted_text = f"Unsupported file type: {content_type}. Cannot extract text automatically."
+        extracted_text = f"Unsupported file type: {resolved_type} (original: {content_type}). Cannot extract text automatically."
         
     # If text is very short or empty, just return a default structure
     if not extracted_text or len(extracted_text.strip()) < 2:
@@ -210,3 +254,4 @@ def process_file_and_extract_task(file_bytes: bytes, filename: str, content_type
         )
         
     return parse_task_from_text(extracted_text)
+
